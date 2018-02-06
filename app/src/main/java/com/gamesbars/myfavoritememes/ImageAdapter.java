@@ -38,11 +38,11 @@ public class ImageAdapter extends ArrayAdapter<Meme> {
         ImageView lockImageView = (ImageView) listItemView.findViewById(R.id.list_item_lock);
 
         if (currentMeme.checkPurchase(purchasePreferences)) {
-            imageView.setImageAlpha(96);
-            lockImageView.setVisibility(View.VISIBLE);
-        } else {
             imageView.setImageAlpha(255);
             lockImageView.setVisibility(View.GONE);
+        } else {
+            imageView.setImageAlpha(96);
+            lockImageView.setVisibility(View.VISIBLE);
         }
 
         imageView.setImageResource(currentMeme.getImageResourceId());
@@ -50,3 +50,4 @@ public class ImageAdapter extends ArrayAdapter<Meme> {
         return listItemView;
     }
 }
+

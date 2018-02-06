@@ -8,4 +8,10 @@
     <string name="classic">Классика</string>
     <string name="games">Игры</string>
     <string name="favorite">Избранное</string>
+
+    <string name="dialog_purchase_title">купешь?</string>
+    <string name="dialog_purchase_ok">куплю</string>
+    <string name="dialog_purchase_no">не</string>
+    <string name="dialog_dont_enough_coins_title">где деньги лебовски??</string>
+    <string name="dialog_dont_enough_coins_ok">бля((</string>
 </resources>

@@ -1,10 +1,12 @@
 package com.gamesbars.myfavoritememes;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -12,24 +14,27 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public final static String PREFERENCES_APP = "app";
+    public final static String PREFERENCES_APP_COINS = "coins";
     public final static String PREFERENCES_FAVORITE = "favorite";
     public final static String PREFERENCES_PURCHASE = "purchase";
 
-    public final static Integer CLASSIC_COUNT = 16;
-    public final static Integer CLASSIC_OPEN_COUNT = 2; // initially purchased classic memes
-    public final static Integer GAMES_COUNT = 16;
-    public final static Integer GAMES_OPEN_COUNT = 2;   // initially purchased games memes
+    private final static Integer START_COINS = 1000;  //  start count of coins
+    private final static Integer MEME_PRICE = 100;  //   price of one meme
+    private final static Integer CLASSIC_COUNT = 16;
+    private final static Integer CLASSIC_OPEN_COUNT = 2; // initially purchased classic memes
+    private final static Integer GAMES_COUNT = 16;
+    private final static Integer GAMES_OPEN_COUNT = 2;   // initially purchased games memes
 
     private ArrayList<Meme> classic;
     private ArrayList<Meme> games;
@@ -38,7 +43,14 @@ public class MainActivity extends AppCompatActivity
     private GridView gridView;
     private ImageAdapter imageAdapter;
     private Toolbar toolbar;
+    private TextView toolbarTitle;
+    private TextView toolbarCoins;
 
+    private AlertDialog purchaseDialog;
+    private Integer clickedMemeId;
+    private AlertDialog dontEnoughCoinsDialog;
+
+    private SharedPreferences appPreferences;
     private SharedPreferences purchasedPreferences;
     private SharedPreferences favoritePreferences;
     private SharedPreferences.Editor editor;
@@ -47,8 +59,10 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle(getString(R.string.classic));
+        toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
+        toolbarCoins = (TextView) findViewById(R.id.toolbar_coins);
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -72,6 +86,7 @@ public class MainActivity extends AppCompatActivity
         initializePreferences();
 
         loadClassic();
+        refreshCoins(0);
         imageAdapter = new ImageAdapter(this, classic, purchasedPreferences);
         gridView = (GridView) findViewById(R.id.grid_view);
         gridView.setAdapter(imageAdapter);
@@ -79,8 +94,15 @@ public class MainActivity extends AppCompatActivity
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                Toast.makeText(MainActivity.this, "" + position,
-                        Toast.LENGTH_SHORT).show();
+                Meme clickedMeme = (Meme) parent.getItemAtPosition(position);
+                clickedMemeId = clickedMeme.getId();
+                if (clickedMeme.checkPurchase(purchasedPreferences)) {
+                    // ... go to the meme activity
+                } else {
+                    if (appPreferences.getInt(PREFERENCES_APP_COINS, 0) >= MEME_PRICE)
+                    showPurchaseDialog();
+                    else showDontEnoughCoinsDialog();
+                }
             }
         });
 
@@ -103,19 +125,19 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_classic) {
-            toolbar.setTitle(getString(R.string.classic));
+            toolbarTitle.setText(getString(R.string.classic));
             if (classic == null) loadClassic();
             imageAdapter = new ImageAdapter(this, classic, purchasedPreferences);
             gridView.setAdapter(imageAdapter);
             gridView.refreshDrawableState();
         } else if (id == R.id.nav_games) {
-            toolbar.setTitle(getString(R.string.games));
+            toolbarTitle.setText(getString(R.string.games));
             if (games == null) loadGames();
             imageAdapter = new ImageAdapter(this, games, purchasedPreferences);
             gridView.setAdapter(imageAdapter);
             gridView.refreshDrawableState();
         } else if (id == R.id.nav_favorite) {
-            toolbar.setTitle(getString(R.string.favorite));
+            toolbarTitle.setText(getString(R.string.favorite));
             if (favorite == null) loadFavorite();
             imageAdapter = new ImageAdapter(this, favorite, purchasedPreferences);
             gridView.setAdapter(imageAdapter);
@@ -131,14 +153,14 @@ public class MainActivity extends AppCompatActivity
         editor = purchasedPreferences.edit();
         for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
             if (!purchasedPreferences.contains(id.toString())) {
-                if (id > CLASSIC_OPEN_COUNT) editor.putBoolean(id.toString(), true);
-                else editor.putBoolean(id.toString(), false);
+                if (id > CLASSIC_OPEN_COUNT) editor.putBoolean(id.toString(), false);
+                else editor.putBoolean(id.toString(), true);
             }
         }
         for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
             if (!purchasedPreferences.contains(id.toString())) {
-                if (id > GAMES_OPEN_COUNT + 100) editor.putBoolean(id.toString(), true);
-                else editor.putBoolean(id.toString(), false);
+                if (id > GAMES_OPEN_COUNT + 100) editor.putBoolean(id.toString(), false);
+                else editor.putBoolean(id.toString(), true);
             }
         }
         editor.apply();
@@ -154,6 +176,13 @@ public class MainActivity extends AppCompatActivity
                 editor.putBoolean(id.toString(), false);
         }
         editor.apply();
+
+        appPreferences = getSharedPreferences(PREFERENCES_APP, Context.MODE_PRIVATE);
+        if (!appPreferences.contains(PREFERENCES_APP_COINS)) {
+            editor = appPreferences.edit();
+            editor.putInt(PREFERENCES_APP_COINS, START_COINS);
+            editor.apply();
+        }
     }
 
     private void loadClassic() {
@@ -210,4 +239,70 @@ public class MainActivity extends AppCompatActivity
                 favorite.add(games.get(id + 1));
         }
     }
+
+    /**
+     *  Refresh coins statement on layout.
+     *
+     *  @param coinsChanges If not null, changes coins count in preferences.
+     */
+    private void refreshCoins(int coinsChanges) {
+        if (coinsChanges != 0) {
+            editor = appPreferences.edit();
+            editor.putInt(PREFERENCES_APP_COINS,
+                    appPreferences.getInt(PREFERENCES_APP_COINS, 0) + coinsChanges);
+            editor.apply();
+        }
+
+        toolbarCoins.setText(String.valueOf(appPreferences.getInt(PREFERENCES_APP_COINS, 0)));
+    }
+
+    private void showPurchaseDialog() {
+        if (purchaseDialog == null) {
+            AlertDialog.Builder purchaseBuilder = new AlertDialog.Builder(this);
+
+            purchaseBuilder.setTitle(R.string.dialog_purchase_title);
+
+            purchaseBuilder.setPositiveButton(R.string.dialog_purchase_ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    editor = purchasedPreferences.edit();
+                    editor.putBoolean(clickedMemeId.toString(), true);
+                    editor.apply();
+                    refreshCoins(-MEME_PRICE);
+
+                    gridView.invalidateViews();
+                }
+            });
+
+            purchaseBuilder.setNegativeButton(R.string.dialog_purchase_no, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User cancelled the dialog
+                }
+            });
+
+            purchaseDialog = purchaseBuilder.create();
+        }
+
+        purchaseDialog.show();
+    }
+
+    private void showDontEnoughCoinsDialog() {
+        if (dontEnoughCoinsDialog == null) {
+            AlertDialog.Builder dontEnoughCoinsBuilder = new AlertDialog.Builder(this);
+
+            dontEnoughCoinsBuilder.setTitle(R.string.dialog_dont_enough_coins_title);
+
+            dontEnoughCoinsBuilder.setPositiveButton(R.string.dialog_dont_enough_coins_ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // User closed the dialog
+                }
+            });
+
+            dontEnoughCoinsDialog = dontEnoughCoinsBuilder.create();
+        }
+
+        dontEnoughCoinsDialog.show();
+    }
 }
+

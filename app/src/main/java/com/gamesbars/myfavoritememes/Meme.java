@@ -29,3 +29,4 @@ public class Meme {
         return favoriteMemes.getBoolean(id.toString(), false);
     }
 }
+
