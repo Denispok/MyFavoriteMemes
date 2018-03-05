@@ -13,12 +13,10 @@ import java.util.ArrayList;
 
 public class ImageAdapter extends ArrayAdapter<Meme> {
 
-    private Context mContext;
     private SharedPreferences purchasePreferences;
 
     public ImageAdapter(Activity context, ArrayList<Meme> memes, SharedPreferences purchasePreferences) {
         super(context, 0, memes);
-        mContext = context;
         this.purchasePreferences = purchasePreferences;
     }
 
@@ -28,7 +26,7 @@ public class ImageAdapter extends ArrayAdapter<Meme> {
 
         if (listItemView == null) {
             listItemView = LayoutInflater.from(getContext()).inflate(
-                    R.layout.list_item, parent, false);
+                    R.layout.memes_list_item, parent, false);
         }
 
         final Meme currentMeme = getItem(position);
