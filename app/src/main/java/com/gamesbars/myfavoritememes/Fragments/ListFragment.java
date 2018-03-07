@@ -87,14 +87,20 @@ public class ListFragment extends Fragment {
         }
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 Meme clickedMeme = (Meme) parent.getItemAtPosition(position);
                 clickedMemeId = clickedMeme.getId();
                 if (clickedMeme.checkPurchase(purchasedPreferences)) {
-                    // ... go to the meme activity
+                    // ... go to the meme fragment
+                    MemeFragment memeFragment = new MemeFragment();
+                    Bundle args = new Bundle();
+                    args.putInt("id", clickedMemeId);
+                    memeFragment.setArguments(args);
+
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.content_main, new MemeFragment());
+                    transaction.replace(R.id.content_main, memeFragment);
                     transaction.addToBackStack(null);
                     transaction.commit();
                 } else {
