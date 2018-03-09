@@ -19,6 +19,7 @@
             app:popupTheme="@style/AppTheme.PopupOverlay">
 
             <LinearLayout
+                android:id="@+id/toolbar_parent"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -32,18 +33,6 @@
                     android:textColor="@android:color/white"
                     android:textSize="20sp"
                     tools:text="Title" />
-
-                <TextView
-                    android:id="@+id/toolbar_coins"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:drawableStart="@drawable/ic_menu_share"
-                    android:gravity="center_vertical"
-                    android:drawablePadding="4dp"
-                    android:textColor="@android:color/white"
-                    android:textSize="20sp"
-                    android:layout_marginEnd="@dimen/grid_spacing"
-                    tools:text="12500" />
 
             </LinearLayout>
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/toolbar_menu"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:layout_marginEnd="@dimen/grid_spacing"
+    android:drawablePadding="4dp"
+    android:drawableStart="@drawable/ic_menu_share"
+    android:gravity="center_vertical"
+    android:textColor="@android:color/white"
+    android:textSize="20sp"
+    tools:text="12500">
+
+</TextView>

@@ -53,7 +53,7 @@ public class ListFragment extends Fragment {
     private SharedPreferences favoritePreferences;
     private SharedPreferences.Editor editor;
 
-    public ListFragment () {
+    public ListFragment() {
         // Required empty public constructor
     }
 
@@ -69,7 +69,15 @@ public class ListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.memes_list, container, false);
 
-        toolbarCoins = (TextView) getActivity().findViewById(R.id.toolbar_coins);
+        //  change current toolbar menu to fragment toolbar menu
+        ViewGroup toolbarParent = (ViewGroup) getActivity().findViewById(R.id.toolbar_parent);
+        View toolbarMenu = toolbarParent.findViewById(R.id.toolbar_menu);
+        if (toolbarMenu != null) {
+            toolbarParent.removeView(toolbarMenu);
+        }
+        View.inflate(getContext(), R.layout.toolbar_memes, toolbarParent);
+
+        toolbarCoins = (TextView) toolbarParent.findViewById(R.id.toolbar_menu);
         refreshCoins(0);
 
         gridView = (GridView) rootView.findViewById(R.id.grid_view);
