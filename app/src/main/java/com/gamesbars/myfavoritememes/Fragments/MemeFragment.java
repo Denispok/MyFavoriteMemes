@@ -1,5 +1,8 @@
 package com.gamesbars.myfavoritememes.Fragments;
 
+import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -10,14 +13,37 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.gamesbars.myfavoritememes.Phrase;
 import com.gamesbars.myfavoritememes.PhraseAdapter;
 import com.gamesbars.myfavoritememes.Phrases;
 import com.gamesbars.myfavoritememes.R;
+
+import java.util.List;
 
 public class MemeFragment extends Fragment {
 
     private TextView toolbarTitle;
     private ImageView toolbarFavorite;
+
+    private MediaPlayer audioPlayer;
+    private MediaPlayer.OnCompletionListener onCompletionListener =
+            new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mediaPlayer) {
+                    releaseMediaPlayer();
+                }
+            };
+    private AudioManager audioManager;
+    private AudioManager.OnAudioFocusChangeListener onAudioFocusChangeListener =
+            new AudioManager.OnAudioFocusChangeListener() {
+        @Override
+        public void onAudioFocusChange(int focusChange) {
+            if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                audioPlayer.stop();
+                releaseMediaPlayer();
+            }
+        }
+    };
 
     public MemeFragment() {
 
@@ -27,6 +53,8 @@ public class MemeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.phrases_list, container, false);
         int memeId = getArguments().getInt("id", 1);
+
+        audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
 
         //  change current toolbar menu to fragment toolbar menu
         ViewGroup toolbarParent = (ViewGroup) getActivity().findViewById(R.id.toolbar_parent);
@@ -39,15 +67,44 @@ public class MemeFragment extends Fragment {
         toolbarTitle = (TextView) toolbarParent.findViewById(R.id.toolbar_title);
         toolbarFavorite = (ImageView) toolbarParent.findViewById(R.id.toolbar_menu);
 
+        final List<Phrase> phrases = Phrases.getPhrases(memeId);
+
         ListView listView = (ListView) rootView.findViewById(R.id.list_view);
-        listView.setAdapter(new PhraseAdapter(getActivity(), Phrases.getPhrases(memeId)));
+        listView.setAdapter(new PhraseAdapter(getActivity(), phrases));
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //  ...play sound
+                //  release media player in case another sound playing now
+                releaseMediaPlayer();
+
+                //  request audio focus for playback
+                int result = audioManager.requestAudioFocus(onAudioFocusChangeListener,
+                        AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
+
+                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                    //  we have audio focus now
+                    //  start playing
+                    audioPlayer = MediaPlayer.create(getContext(), phrases.get(position).getSoundId());
+                    audioPlayer.start();
+                    audioPlayer.setOnCompletionListener(onCompletionListener);
+                }
             }
         });
 
         return rootView;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        releaseMediaPlayer();
+    }
+
+    private void releaseMediaPlayer() {
+        if (audioPlayer != null) {
+            audioPlayer.release();
+            audioPlayer = null;
+        }
+        audioManager.abandonAudioFocus(onAudioFocusChangeListener);
     }
 }
