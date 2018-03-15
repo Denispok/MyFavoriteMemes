@@ -36,14 +36,14 @@ public class MemeFragment extends Fragment {
     private AudioManager audioManager;
     private AudioManager.OnAudioFocusChangeListener onAudioFocusChangeListener =
             new AudioManager.OnAudioFocusChangeListener() {
-        @Override
-        public void onAudioFocusChange(int focusChange) {
-            if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                audioPlayer.stop();
-                releaseMediaPlayer();
-            }
-        }
-    };
+                @Override
+                public void onAudioFocusChange(int focusChange) {
+                    if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                        audioPlayer.stop();
+                        releaseMediaPlayer();
+                    }
+                }
+            };
 
     public MemeFragment() {
 
@@ -53,6 +53,7 @@ public class MemeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.phrases_list, container, false);
         int memeId = getArguments().getInt("id", 1);
+        String memeTitle = getArguments().getString("title", "Title");
 
         audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
 
@@ -66,6 +67,8 @@ public class MemeFragment extends Fragment {
 
         toolbarTitle = (TextView) toolbarParent.findViewById(R.id.toolbar_title);
         toolbarFavorite = (ImageView) toolbarParent.findViewById(R.id.toolbar_menu);
+
+        toolbarTitle.setText(memeTitle);
 
         final List<Phrase> phrases = Phrases.getPhrases(memeId);
 

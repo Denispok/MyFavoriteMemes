@@ -6,15 +6,21 @@ import android.content.SharedPreferences;
 public class Meme {
 
     private Integer id;
+    private String title;
     private int imageResourceId;
 
-    public Meme(Integer id, int imageResourceId) {
+    public Meme(Integer id, String title, int imageResourceId) {
         this.id = id;
+        this.title = title;
         this.imageResourceId = imageResourceId;
     }
 
     public Integer getId() {
         return id;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     public int getImageResourceId() {

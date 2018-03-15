@@ -9,7 +9,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 import com.gamesbars.myfavoritememes.Fragments.ListFragment;
 
@@ -22,7 +21,6 @@ public class MainActivity extends AppCompatActivity
     public final static String PREFERENCES_PURCHASE = "purchase";
 
     private Toolbar toolbar;
-    private TextView toolbarTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +32,6 @@ public class MainActivity extends AppCompatActivity
                 .commit();
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbarTitle = (TextView) findViewById(R.id.toolbar_title);
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -84,17 +81,14 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (id == R.id.nav_classic) {
-            toolbarTitle.setText(getString(R.string.classic));
             listFragment.openClassic();
             listFragment.state = ListFragment.State.CLASSIC;
 
         } else if (id == R.id.nav_games) {
-            toolbarTitle.setText(getString(R.string.games));
             listFragment.openGames();
             listFragment.state = ListFragment.State.GAMES;
 
         } else if (id == R.id.nav_favorite) {
-            toolbarTitle.setText(getString(R.string.favorite));
             listFragment.openFavorite();
             listFragment.state = ListFragment.State.FAVORITE;
         }

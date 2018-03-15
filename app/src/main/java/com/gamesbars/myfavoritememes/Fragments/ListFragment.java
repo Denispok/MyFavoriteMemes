@@ -42,6 +42,8 @@ public class ListFragment extends Fragment {
 
     private GridView gridView;
     private ImageAdapter imageAdapter;
+
+    private TextView toolbarTitle;
     private TextView toolbarCoins;
 
     private AlertDialog purchaseDialog;
@@ -77,6 +79,7 @@ public class ListFragment extends Fragment {
         }
         View.inflate(getContext(), R.layout.toolbar_memes, toolbarParent);
 
+        toolbarTitle = (TextView) toolbarParent.findViewById(R.id.toolbar_title);
         toolbarCoins = (TextView) toolbarParent.findViewById(R.id.toolbar_menu);
         refreshCoins(0);
 
@@ -105,6 +108,7 @@ public class ListFragment extends Fragment {
                     MemeFragment memeFragment = new MemeFragment();
                     Bundle args = new Bundle();
                     args.putInt("id", clickedMemeId);
+                    args.putString("title", clickedMeme.getTitle());
                     memeFragment.setArguments(args);
 
                     FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -160,6 +164,7 @@ public class ListFragment extends Fragment {
     }
 
     public void openClassic() {
+        toolbarTitle.setText(getString(R.string.classic));
         if (classic == null) loadClassic();
         imageAdapter = new ImageAdapter(getActivity(), classic, purchasedPreferences);
         gridView.setAdapter(imageAdapter);
@@ -167,6 +172,7 @@ public class ListFragment extends Fragment {
     }
 
     public void openGames() {
+        toolbarTitle.setText(getString(R.string.games));
         if (games == null) loadGames();
         imageAdapter = new ImageAdapter(getActivity(), games, purchasedPreferences);
         gridView.setAdapter(imageAdapter);
@@ -174,6 +180,7 @@ public class ListFragment extends Fragment {
     }
 
     public void openFavorite() {
+        toolbarTitle.setText(getString(R.string.favorite));
         if (favorite == null) loadFavorite();
         imageAdapter = new ImageAdapter(getActivity(), favorite, purchasedPreferences);
         gridView.setAdapter(imageAdapter);
@@ -182,42 +189,42 @@ public class ListFragment extends Fragment {
 
     private void loadClassic() {
         classic = new ArrayList<Meme>();
-        classic.add(new Meme(1, R.drawable.classic_1_gorin));
-        classic.add(new Meme(2, R.drawable.lil));
-        classic.add(new Meme(3, R.drawable.lil));
-        classic.add(new Meme(4, R.drawable.lil));
-        classic.add(new Meme(5, R.drawable.kit));
-        classic.add(new Meme(6, R.drawable.kit));
-        classic.add(new Meme(7, R.drawable.kit));
-        classic.add(new Meme(8, R.drawable.kit));
-        classic.add(new Meme(9, R.drawable.classic_1_gorin));
-        classic.add(new Meme(10, R.drawable.lil));
-        classic.add(new Meme(11, R.drawable.lil));
-        classic.add(new Meme(12, R.drawable.lil));
-        classic.add(new Meme(13, R.drawable.kit));
-        classic.add(new Meme(14, R.drawable.kit));
-        classic.add(new Meme(15, R.drawable.kit));
-        classic.add(new Meme(16, R.drawable.kit));
+        classic.add(new Meme(1, "Геннадий Горин", R.drawable.classic_1_gorin));
+        classic.add(new Meme(2, "Sample", R.drawable.lil));
+        classic.add(new Meme(3, "Sample", R.drawable.lil));
+        classic.add(new Meme(4, "Sample", R.drawable.lil));
+        classic.add(new Meme(5, "Sample", R.drawable.kit));
+        classic.add(new Meme(6, "Sample", R.drawable.kit));
+        classic.add(new Meme(7, "Sample", R.drawable.kit));
+        classic.add(new Meme(8, "Sample", R.drawable.kit));
+        classic.add(new Meme(9, "Sample", R.drawable.classic_1_gorin));
+        classic.add(new Meme(10, "Sample", R.drawable.lil));
+        classic.add(new Meme(11, "Sample", R.drawable.lil));
+        classic.add(new Meme(12, "Sample", R.drawable.lil));
+        classic.add(new Meme(13, "Sample", R.drawable.kit));
+        classic.add(new Meme(14, "Sample", R.drawable.kit));
+        classic.add(new Meme(15, "Sample", R.drawable.kit));
+        classic.add(new Meme(16, "Sample", R.drawable.kit));
     }
 
     private void loadGames() {
         games = new ArrayList<Meme>();
-        games.add(new Meme(101, R.drawable.classic_2_sova));
-        games.add(new Meme(102, R.drawable.kit));
-        games.add(new Meme(103, R.drawable.kit));
-        games.add(new Meme(104, R.drawable.kit));
-        games.add(new Meme(105, R.drawable.kit));
-        games.add(new Meme(106, R.drawable.kit));
-        games.add(new Meme(107, R.drawable.lil));
-        games.add(new Meme(108, R.drawable.lil));
-        games.add(new Meme(109, R.drawable.classic_2_sova));
-        games.add(new Meme(110, R.drawable.kit));
-        games.add(new Meme(111, R.drawable.kit));
-        games.add(new Meme(112, R.drawable.kit));
-        games.add(new Meme(113, R.drawable.kit));
-        games.add(new Meme(114, R.drawable.kit));
-        games.add(new Meme(115, R.drawable.lil));
-        games.add(new Meme(116, R.drawable.lil));
+        games.add(new Meme(101, "Сова", R.drawable.classic_2_sova));
+        games.add(new Meme(102, "Sample", R.drawable.kit));
+        games.add(new Meme(103, "Sample", R.drawable.kit));
+        games.add(new Meme(104, "Sample", R.drawable.kit));
+        games.add(new Meme(105, "Sample", R.drawable.kit));
+        games.add(new Meme(106, "Sample", R.drawable.kit));
+        games.add(new Meme(107, "Sample", R.drawable.lil));
+        games.add(new Meme(108, "Sample", R.drawable.lil));
+        games.add(new Meme(109, "Sample", R.drawable.classic_2_sova));
+        games.add(new Meme(110, "Sample", R.drawable.kit));
+        games.add(new Meme(111, "Sample", R.drawable.kit));
+        games.add(new Meme(112, "Sample", R.drawable.kit));
+        games.add(new Meme(113, "Sample", R.drawable.kit));
+        games.add(new Meme(114, "Sample", R.drawable.kit));
+        games.add(new Meme(115, "Sample", R.drawable.lil));
+        games.add(new Meme(116, "Sample", R.drawable.lil));
     }
 
     private void loadFavorite() {
