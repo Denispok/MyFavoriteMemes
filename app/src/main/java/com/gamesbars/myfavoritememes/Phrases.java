@@ -11,7 +11,7 @@ public final class Phrases {
             case 1:
                 phrases.add(new Phrase("А я не понел", R.raw.classic_1_ne_ponel));
                 break;
-            case 2:
+            case 101:
                 phrases.add(new Phrase("Ааа... а я думала сова", R.raw.classic_2_aaa_sova));
                 break;
             // ...

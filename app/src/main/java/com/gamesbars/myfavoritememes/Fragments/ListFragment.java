@@ -147,7 +147,7 @@ public class ListFragment extends Fragment {
         editor = favoritePreferences.edit();
         for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
             if (!favoritePreferences.contains(id.toString()))
-                editor.putBoolean(id.toString(), true);                                             //  FALSE   !!!
+                editor.putBoolean(id.toString(), false);
         }
         for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
             if (!favoritePreferences.contains(id.toString()))
@@ -181,14 +181,14 @@ public class ListFragment extends Fragment {
 
     public void openFavorite() {
         toolbarTitle.setText(getString(R.string.favorite));
-        if (favorite == null) loadFavorite();
+        loadFavorite();
         imageAdapter = new ImageAdapter(getActivity(), favorite, purchasedPreferences);
         gridView.setAdapter(imageAdapter);
         gridView.refreshDrawableState();
     }
 
     private void loadClassic() {
-        classic = new ArrayList<Meme>();
+        classic = new ArrayList<>();
         classic.add(new Meme(1, "Геннадий Горин", R.drawable.classic_1_gorin));
         classic.add(new Meme(2, "Sample", R.drawable.lil));
         classic.add(new Meme(3, "Sample", R.drawable.lil));
@@ -208,7 +208,7 @@ public class ListFragment extends Fragment {
     }
 
     private void loadGames() {
-        games = new ArrayList<Meme>();
+        games = new ArrayList<>();
         games.add(new Meme(101, "Сова", R.drawable.classic_2_sova));
         games.add(new Meme(102, "Sample", R.drawable.kit));
         games.add(new Meme(103, "Sample", R.drawable.kit));
@@ -231,14 +231,14 @@ public class ListFragment extends Fragment {
         if (classic == null) loadClassic();
         if (games == null) loadGames();
 
-        favorite = new ArrayList<Meme>();
+        favorite = new ArrayList<>();
         for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
             if (favoritePreferences.getBoolean(id.toString(), false))
                 favorite.add(classic.get(id - 1));
         }
-        for (Integer id = 101; id <= GAMES_COUNT; id++) {
+        for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
             if (favoritePreferences.getBoolean(id.toString(), false))
-                favorite.add(games.get(id - 1));
+                favorite.add(games.get(id - 101));
         }
     }
 
@@ -310,6 +310,6 @@ public class ListFragment extends Fragment {
     public enum State {
         CLASSIC,
         GAMES,
-        FAVORITE;
+        FAVORITE
     }
 }

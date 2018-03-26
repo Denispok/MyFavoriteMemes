@@ -1,6 +1,7 @@
 package com.gamesbars.myfavoritememes.Fragments;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -20,10 +21,14 @@ import com.gamesbars.myfavoritememes.R;
 
 import java.util.List;
 
+import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_FAVORITE;
+
 public class MemeFragment extends Fragment {
 
     private TextView toolbarTitle;
     private ImageView toolbarFavorite;
+    private SharedPreferences favoritePreferences;
+    private boolean isFavorite;
 
     private MediaPlayer audioPlayer;
     private MediaPlayer.OnCompletionListener onCompletionListener =
@@ -52,7 +57,7 @@ public class MemeFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.phrases_list, container, false);
-        int memeId = getArguments().getInt("id", 1);
+        final int memeId = getArguments().getInt("id", 1);
         String memeTitle = getArguments().getString("title", "Title");
 
         audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
@@ -66,9 +71,31 @@ public class MemeFragment extends Fragment {
         View.inflate(getContext(), R.layout.toolbar_phrases, toolbarParent);
 
         toolbarTitle = (TextView) toolbarParent.findViewById(R.id.toolbar_title);
-        toolbarFavorite = (ImageView) toolbarParent.findViewById(R.id.toolbar_menu);
-
         toolbarTitle.setText(memeTitle);
+
+        //  favorite functional
+        toolbarFavorite = (ImageView) toolbarParent.findViewById(R.id.toolbar_menu);
+        favoritePreferences = getActivity()
+                .getSharedPreferences(PREFERENCES_FAVORITE, Context.MODE_PRIVATE);
+        isFavorite = favoritePreferences.getBoolean(String.valueOf(memeId), false);
+
+        if (isFavorite) toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_on);
+        else toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+
+        toolbarFavorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isFavorite = !isFavorite;
+
+                SharedPreferences.Editor editor = favoritePreferences.edit();
+                editor.putBoolean(String.valueOf(memeId), isFavorite);
+                editor.apply();
+
+                if (isFavorite)
+                    toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_on);
+                else toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+            }
+        });
 
         final List<Phrase> phrases = Phrases.getPhrases(memeId);
 
