@@ -10,7 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 
-import com.gamesbars.myfavoritememes.Fragments.ListFragment;
+import com.gamesbars.myfavoritememes.Fragments.MemeFragment;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         getSupportFragmentManager().beginTransaction()
-                .replace(R.id.content_main, new ListFragment())
+                .replace(R.id.content_main, new MemeFragment())
                 .commit();
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -68,29 +68,29 @@ public class MainActivity extends AppCompatActivity
 
         //if (id == R.id.setting , etc...)
 
-        ListFragment listFragment;
+        MemeFragment memeFragment;
 
-        //  Create new ListFragment or use old if one already exist
-        if (fragmentManager.findFragmentById(R.id.content_main) instanceof ListFragment) {
-            listFragment = (ListFragment) fragmentManager.findFragmentById(R.id.content_main);
+        //  Create new MemeFragment or use old if one already exist
+        if (fragmentManager.findFragmentById(R.id.content_main) instanceof MemeFragment) {
+            memeFragment = (MemeFragment) fragmentManager.findFragmentById(R.id.content_main);
         } else {
-            listFragment = new ListFragment();
+            memeFragment = new MemeFragment();
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.content_main, listFragment)
+                    .replace(R.id.content_main, memeFragment)
                     .commit();
         }
 
         if (id == R.id.nav_classic) {
-            listFragment.openClassic();
-            listFragment.state = ListFragment.State.CLASSIC;
+            memeFragment.openClassic();
+            memeFragment.state = MemeFragment.State.CLASSIC;
 
         } else if (id == R.id.nav_games) {
-            listFragment.openGames();
-            listFragment.state = ListFragment.State.GAMES;
+            memeFragment.openGames();
+            memeFragment.state = MemeFragment.State.GAMES;
 
         } else if (id == R.id.nav_favorite) {
-            listFragment.openFavorite();
-            listFragment.state = ListFragment.State.FAVORITE;
+            memeFragment.openFavorite();
+            memeFragment.state = MemeFragment.State.FAVORITE;
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

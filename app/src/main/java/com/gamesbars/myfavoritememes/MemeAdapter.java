@@ -11,11 +11,11 @@ import android.widget.ImageView;
 
 import java.util.ArrayList;
 
-public class ImageAdapter extends ArrayAdapter<Meme> {
+public class MemeAdapter extends ArrayAdapter<Meme> {
 
     private SharedPreferences purchasePreferences;
 
-    public ImageAdapter(Activity context, ArrayList<Meme> memes, SharedPreferences purchasePreferences) {
+    public MemeAdapter(Activity context, ArrayList<Meme> memes, SharedPreferences purchasePreferences) {
         super(context, 0, memes);
         this.purchasePreferences = purchasePreferences;
     }

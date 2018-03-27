@@ -1,66 +1,75 @@
 package com.gamesbars.myfavoritememes.Fragments;
 
+
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.GridView;
 import android.widget.TextView;
 
-import com.gamesbars.myfavoritememes.Phrase;
-import com.gamesbars.myfavoritememes.PhraseAdapter;
-import com.gamesbars.myfavoritememes.Phrases;
+import com.gamesbars.myfavoritememes.MemeAdapter;
+import com.gamesbars.myfavoritememes.Meme;
 import com.gamesbars.myfavoritememes.R;
 
-import java.util.List;
+import java.util.ArrayList;
 
+import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_APP;
+import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_APP_COINS;
 import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_FAVORITE;
+import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_PURCHASE;
 
 public class MemeFragment extends Fragment {
 
-    private TextView toolbarTitle;
-    private ImageView toolbarFavorite;
-    private SharedPreferences favoritePreferences;
-    private boolean isFavorite;
+    private final static Integer START_COINS = 1000;  //  start count of coins
+    private final static Integer MEME_PRICE = 100;  //   price of one meme
+    private final static Integer CLASSIC_COUNT = 16;
+    private final static Integer CLASSIC_OPEN_COUNT = 2; // initially purchased classic memes
+    private final static Integer GAMES_COUNT = 16;
+    private final static Integer GAMES_OPEN_COUNT = 2;   // initially purchased games memes
 
-    private MediaPlayer audioPlayer;
-    private MediaPlayer.OnCompletionListener onCompletionListener =
-            new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mediaPlayer) {
-                    releaseMediaPlayer();
-                }
-            };
-    private AudioManager audioManager;
-    private AudioManager.OnAudioFocusChangeListener onAudioFocusChangeListener =
-            new AudioManager.OnAudioFocusChangeListener() {
-                @Override
-                public void onAudioFocusChange(int focusChange) {
-                    if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                        audioPlayer.stop();
-                        releaseMediaPlayer();
-                    }
-                }
-            };
+    public State state;
+    private ArrayList<Meme> classic;
+    private ArrayList<Meme> games;
+    private ArrayList<Meme> favorite;
+
+    private GridView gridView;
+    private MemeAdapter memeAdapter;
+
+    private TextView toolbarTitle;
+    private TextView toolbarCoins;
+
+    private AlertDialog purchaseDialog;
+    private Integer clickedMemeId;
+    private AlertDialog dontEnoughCoinsDialog;
+
+    private SharedPreferences appPreferences;
+    private SharedPreferences purchasedPreferences;
+    private SharedPreferences favoritePreferences;
+    private SharedPreferences.Editor editor;
 
     public MemeFragment() {
-
+        // Required empty public constructor
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.phrases_list, container, false);
-        final int memeId = getArguments().getInt("id", 1);
-        String memeTitle = getArguments().getString("title", "Title");
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        state = State.CLASSIC;
+        initializePreferences();
+    }
 
-        audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View rootView = inflater.inflate(R.layout.memes_list, container, false);
 
         //  change current toolbar menu to fragment toolbar menu
         ViewGroup toolbarParent = (ViewGroup) getActivity().findViewById(R.id.toolbar_parent);
@@ -68,55 +77,48 @@ public class MemeFragment extends Fragment {
         if (toolbarMenu != null) {
             toolbarParent.removeView(toolbarMenu);
         }
-        View.inflate(getContext(), R.layout.toolbar_phrases, toolbarParent);
+        View.inflate(getContext(), R.layout.toolbar_memes, toolbarParent);
 
         toolbarTitle = (TextView) toolbarParent.findViewById(R.id.toolbar_title);
-        toolbarTitle.setText(memeTitle);
+        toolbarCoins = (TextView) toolbarParent.findViewById(R.id.toolbar_menu);
+        refreshCoins(0);
 
-        //  favorite functional
-        toolbarFavorite = (ImageView) toolbarParent.findViewById(R.id.toolbar_menu);
-        favoritePreferences = getActivity()
-                .getSharedPreferences(PREFERENCES_FAVORITE, Context.MODE_PRIVATE);
-        isFavorite = favoritePreferences.getBoolean(String.valueOf(memeId), false);
+        gridView = (GridView) rootView.findViewById(R.id.grid_view);
 
-        if (isFavorite) toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_on);
-        else toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+        switch (state) {
+            case CLASSIC:
+                openClassic();
+                break;
+            case GAMES:
+                openGames();
+                break;
+            case FAVORITE:
+                openFavorite();
+                break;
+        }
 
-        toolbarFavorite.setOnClickListener(new View.OnClickListener() {
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
-                isFavorite = !isFavorite;
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+                Meme clickedMeme = (Meme) parent.getItemAtPosition(position);
+                clickedMemeId = clickedMeme.getId();
+                if (clickedMeme.checkPurchase(purchasedPreferences)) {
+                    // ... go to the meme fragment
+                    PhraseFragment phraseFragment = new PhraseFragment();
+                    Bundle args = new Bundle();
+                    args.putInt("id", clickedMemeId);
+                    args.putString("title", clickedMeme.getTitle());
+                    phraseFragment.setArguments(args);
 
-                SharedPreferences.Editor editor = favoritePreferences.edit();
-                editor.putBoolean(String.valueOf(memeId), isFavorite);
-                editor.apply();
-
-                if (isFavorite)
-                    toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_on);
-                else toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_off);
-            }
-        });
-
-        final List<Phrase> phrases = Phrases.getPhrases(memeId);
-
-        ListView listView = (ListView) rootView.findViewById(R.id.list_view);
-        listView.setAdapter(new PhraseAdapter(getActivity(), phrases));
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //  release media player in case another sound playing now
-                releaseMediaPlayer();
-
-                //  request audio focus for playback
-                int result = audioManager.requestAudioFocus(onAudioFocusChangeListener,
-                        AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK);
-
-                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                    //  we have audio focus now
-                    //  start playing
-                    audioPlayer = MediaPlayer.create(getContext(), phrases.get(position).getSoundId());
-                    audioPlayer.start();
-                    audioPlayer.setOnCompletionListener(onCompletionListener);
+                    FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    transaction.replace(R.id.content_main, phraseFragment);
+                    transaction.addToBackStack(null);
+                    transaction.commit();
+                } else {
+                    if (appPreferences.getInt(PREFERENCES_APP_COINS, 0) >= MEME_PRICE)
+                        showPurchaseDialog();
+                    else showDontEnoughCoinsDialog();
                 }
             }
         });
@@ -124,17 +126,190 @@ public class MemeFragment extends Fragment {
         return rootView;
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-        releaseMediaPlayer();
+    private void initializePreferences() {
+        purchasedPreferences = getActivity().getSharedPreferences(PREFERENCES_PURCHASE, Context.MODE_PRIVATE);
+        editor = purchasedPreferences.edit();
+        for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
+            if (!purchasedPreferences.contains(id.toString())) {
+                if (id > CLASSIC_OPEN_COUNT) editor.putBoolean(id.toString(), false);
+                else editor.putBoolean(id.toString(), true);
+            }
+        }
+        for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
+            if (!purchasedPreferences.contains(id.toString())) {
+                if (id > GAMES_OPEN_COUNT + 100) editor.putBoolean(id.toString(), false);
+                else editor.putBoolean(id.toString(), true);
+            }
+        }
+        editor.apply();
+
+        favoritePreferences = getActivity().getSharedPreferences(PREFERENCES_FAVORITE, Context.MODE_PRIVATE);
+        editor = favoritePreferences.edit();
+        for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
+            if (!favoritePreferences.contains(id.toString()))
+                editor.putBoolean(id.toString(), false);
+        }
+        for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
+            if (!favoritePreferences.contains(id.toString()))
+                editor.putBoolean(id.toString(), false);
+        }
+        editor.apply();
+
+        appPreferences = getActivity().getSharedPreferences(PREFERENCES_APP, Context.MODE_PRIVATE);
+        if (!appPreferences.contains(PREFERENCES_APP_COINS)) {
+            editor = appPreferences.edit();
+            editor.putInt(PREFERENCES_APP_COINS, START_COINS);
+            editor.apply();
+        }
     }
 
-    private void releaseMediaPlayer() {
-        if (audioPlayer != null) {
-            audioPlayer.release();
-            audioPlayer = null;
+    public void openClassic() {
+        toolbarTitle.setText(getString(R.string.classic));
+        if (classic == null) loadClassic();
+        memeAdapter = new MemeAdapter(getActivity(), classic, purchasedPreferences);
+        gridView.setAdapter(memeAdapter);
+        gridView.refreshDrawableState();
+    }
+
+    public void openGames() {
+        toolbarTitle.setText(getString(R.string.games));
+        if (games == null) loadGames();
+        memeAdapter = new MemeAdapter(getActivity(), games, purchasedPreferences);
+        gridView.setAdapter(memeAdapter);
+        gridView.refreshDrawableState();
+    }
+
+    public void openFavorite() {
+        toolbarTitle.setText(getString(R.string.favorite));
+        loadFavorite();
+        memeAdapter = new MemeAdapter(getActivity(), favorite, purchasedPreferences);
+        gridView.setAdapter(memeAdapter);
+        gridView.refreshDrawableState();
+    }
+
+    private void loadClassic() {
+        classic = new ArrayList<>();
+        classic.add(new Meme(1, "Геннадий Горин", R.drawable.classic_1_gorin));
+        classic.add(new Meme(2, "Sample", R.drawable.lil));
+        classic.add(new Meme(3, "Sample", R.drawable.lil));
+        classic.add(new Meme(4, "Sample", R.drawable.lil));
+        classic.add(new Meme(5, "Sample", R.drawable.kit));
+        classic.add(new Meme(6, "Sample", R.drawable.kit));
+        classic.add(new Meme(7, "Sample", R.drawable.kit));
+        classic.add(new Meme(8, "Sample", R.drawable.kit));
+        classic.add(new Meme(9, "Sample", R.drawable.classic_1_gorin));
+        classic.add(new Meme(10, "Sample", R.drawable.lil));
+        classic.add(new Meme(11, "Sample", R.drawable.lil));
+        classic.add(new Meme(12, "Sample", R.drawable.lil));
+        classic.add(new Meme(13, "Sample", R.drawable.kit));
+        classic.add(new Meme(14, "Sample", R.drawable.kit));
+        classic.add(new Meme(15, "Sample", R.drawable.kit));
+        classic.add(new Meme(16, "Sample", R.drawable.kit));
+    }
+
+    private void loadGames() {
+        games = new ArrayList<>();
+        games.add(new Meme(101, "Сова", R.drawable.classic_2_sova));
+        games.add(new Meme(102, "Sample", R.drawable.kit));
+        games.add(new Meme(103, "Sample", R.drawable.kit));
+        games.add(new Meme(104, "Sample", R.drawable.kit));
+        games.add(new Meme(105, "Sample", R.drawable.kit));
+        games.add(new Meme(106, "Sample", R.drawable.kit));
+        games.add(new Meme(107, "Sample", R.drawable.lil));
+        games.add(new Meme(108, "Sample", R.drawable.lil));
+        games.add(new Meme(109, "Sample", R.drawable.classic_2_sova));
+        games.add(new Meme(110, "Sample", R.drawable.kit));
+        games.add(new Meme(111, "Sample", R.drawable.kit));
+        games.add(new Meme(112, "Sample", R.drawable.kit));
+        games.add(new Meme(113, "Sample", R.drawable.kit));
+        games.add(new Meme(114, "Sample", R.drawable.kit));
+        games.add(new Meme(115, "Sample", R.drawable.lil));
+        games.add(new Meme(116, "Sample", R.drawable.lil));
+    }
+
+    private void loadFavorite() {
+        if (classic == null) loadClassic();
+        if (games == null) loadGames();
+
+        favorite = new ArrayList<>();
+        for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
+            if (favoritePreferences.getBoolean(id.toString(), false))
+                favorite.add(classic.get(id - 1));
         }
-        audioManager.abandonAudioFocus(onAudioFocusChangeListener);
+        for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
+            if (favoritePreferences.getBoolean(id.toString(), false))
+                favorite.add(games.get(id - 101));
+        }
+    }
+
+    /**
+     * Refresh coins statement on layout.
+     *
+     * @param coinsChanges If not null, changes coins count in preferences.
+     */
+    private void refreshCoins(int coinsChanges) {
+        if (coinsChanges != 0) {
+            editor = appPreferences.edit();
+            editor.putInt(PREFERENCES_APP_COINS,
+                    appPreferences.getInt(PREFERENCES_APP_COINS, 0) + coinsChanges);
+            editor.apply();
+        }
+
+        toolbarCoins.setText(String.valueOf(appPreferences.getInt(PREFERENCES_APP_COINS, 0)));
+    }
+
+    private void showPurchaseDialog() {
+        if (purchaseDialog == null) {
+            AlertDialog.Builder purchaseBuilder = new AlertDialog.Builder(getActivity());
+
+            purchaseBuilder.setTitle(R.string.dialog_purchase_title);
+
+            purchaseBuilder.setPositiveButton(R.string.dialog_purchase_ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    editor = purchasedPreferences.edit();
+                    editor.putBoolean(clickedMemeId.toString(), true);
+                    editor.apply();
+                    refreshCoins(-MEME_PRICE);
+
+                    gridView.invalidateViews();
+                }
+            });
+
+            purchaseBuilder.setNegativeButton(R.string.dialog_purchase_no, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // User cancelled the dialog
+                }
+            });
+
+            purchaseDialog = purchaseBuilder.create();
+        }
+
+        purchaseDialog.show();
+    }
+
+    private void showDontEnoughCoinsDialog() {
+        if (dontEnoughCoinsDialog == null) {
+            AlertDialog.Builder dontEnoughCoinsBuilder = new AlertDialog.Builder(getActivity());
+
+            dontEnoughCoinsBuilder.setTitle(R.string.dialog_dont_enough_coins_title);
+
+            dontEnoughCoinsBuilder.setPositiveButton(R.string.dialog_dont_enough_coins_ok, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    // User closed the dialog
+                }
+            });
+
+            dontEnoughCoinsDialog = dontEnoughCoinsBuilder.create();
+        }
+
+        dontEnoughCoinsDialog.show();
+    }
+
+    public enum State {
+        CLASSIC,
+        GAMES,
+        FAVORITE
     }
 }
