@@ -80,18 +80,9 @@ public class MainActivity extends AppCompatActivity
                     .commit();
         }
 
-        if (id == R.id.nav_classic) {
-            memeFragment.openClassic();
-            memeFragment.state = MemeFragment.State.CLASSIC;
-
-        } else if (id == R.id.nav_games) {
-            memeFragment.openGames();
-            memeFragment.state = MemeFragment.State.GAMES;
-
-        } else if (id == R.id.nav_favorite) {
-            memeFragment.openFavorite();
-            memeFragment.state = MemeFragment.State.FAVORITE;
-        }
+        if (id == R.id.nav_classic) memeFragment.openClassic();
+        else if (id == R.id.nav_games) memeFragment.openGames();
+        else if (id == R.id.nav_favorite) memeFragment.openFavorite();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

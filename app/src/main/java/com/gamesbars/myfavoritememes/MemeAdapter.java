@@ -1,7 +1,6 @@
 package com.gamesbars.myfavoritememes;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,13 +8,13 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class MemeAdapter extends ArrayAdapter<Meme> {
 
     private SharedPreferences purchasePreferences;
 
-    public MemeAdapter(Activity context, ArrayList<Meme> memes, SharedPreferences purchasePreferences) {
+    public MemeAdapter(Activity context, List<Meme> memes, SharedPreferences purchasePreferences) {
         super(context, 0, memes);
         this.purchasePreferences = purchasePreferences;
     }
@@ -35,7 +34,7 @@ public class MemeAdapter extends ArrayAdapter<Meme> {
         ImageView imageView = (ImageView) listItemView.findViewById(R.id.list_item_image);
         ImageView lockImageView = (ImageView) listItemView.findViewById(R.id.list_item_lock);
 
-        if (currentMeme.checkPurchase(purchasePreferences)) {
+        if (currentMeme.isPurchased(purchasePreferences)) {
             imageView.setImageAlpha(255);
             lockImageView.setVisibility(View.GONE);
         } else {

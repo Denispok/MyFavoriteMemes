@@ -15,11 +15,16 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
-import com.gamesbars.myfavoritememes.MemeAdapter;
 import com.gamesbars.myfavoritememes.Meme;
+import com.gamesbars.myfavoritememes.MemeAdapter;
+import com.gamesbars.myfavoritememes.Memes;
 import com.gamesbars.myfavoritememes.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_APP;
 import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_APP_COINS;
@@ -35,10 +40,7 @@ public class MemeFragment extends Fragment {
     private final static Integer GAMES_COUNT = 16;
     private final static Integer GAMES_OPEN_COUNT = 2;   // initially purchased games memes
 
-    public State state;
-    private ArrayList<Meme> classic;
-    private ArrayList<Meme> games;
-    private ArrayList<Meme> favorite;
+    private Category category;
 
     private GridView gridView;
     private MemeAdapter memeAdapter;
@@ -62,7 +64,7 @@ public class MemeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        state = State.CLASSIC;
+        category = Category.CLASSIC;
         initializePreferences();
     }
 
@@ -85,7 +87,7 @@ public class MemeFragment extends Fragment {
 
         gridView = (GridView) rootView.findViewById(R.id.grid_view);
 
-        switch (state) {
+        switch (category) {
             case CLASSIC:
                 openClassic();
                 break;
@@ -103,8 +105,8 @@ public class MemeFragment extends Fragment {
                                     int position, long id) {
                 Meme clickedMeme = (Meme) parent.getItemAtPosition(position);
                 clickedMemeId = clickedMeme.getId();
-                if (clickedMeme.checkPurchase(purchasedPreferences)) {
-                    // ... go to the meme fragment
+                if (clickedMeme.isPurchased(purchasedPreferences)) {
+                    // ... go to the phrase fragment
                     PhraseFragment phraseFragment = new PhraseFragment();
                     Bundle args = new Bundle();
                     args.putInt("id", clickedMemeId);
@@ -144,16 +146,6 @@ public class MemeFragment extends Fragment {
         editor.apply();
 
         favoritePreferences = getActivity().getSharedPreferences(PREFERENCES_FAVORITE, Context.MODE_PRIVATE);
-        editor = favoritePreferences.edit();
-        for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
-            if (!favoritePreferences.contains(id.toString()))
-                editor.putBoolean(id.toString(), false);
-        }
-        for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
-            if (!favoritePreferences.contains(id.toString()))
-                editor.putBoolean(id.toString(), false);
-        }
-        editor.apply();
 
         appPreferences = getActivity().getSharedPreferences(PREFERENCES_APP, Context.MODE_PRIVATE);
         if (!appPreferences.contains(PREFERENCES_APP_COINS)) {
@@ -165,81 +157,70 @@ public class MemeFragment extends Fragment {
 
     public void openClassic() {
         toolbarTitle.setText(getString(R.string.classic));
-        if (classic == null) loadClassic();
-        memeAdapter = new MemeAdapter(getActivity(), classic, purchasedPreferences);
+        memeAdapter = new MemeAdapter(getActivity(), loadCategory(Category.CLASSIC), purchasedPreferences);
         gridView.setAdapter(memeAdapter);
         gridView.refreshDrawableState();
+        category = Category.CLASSIC;
     }
 
     public void openGames() {
         toolbarTitle.setText(getString(R.string.games));
-        if (games == null) loadGames();
-        memeAdapter = new MemeAdapter(getActivity(), games, purchasedPreferences);
+        memeAdapter = new MemeAdapter(getActivity(), loadCategory(Category.GAMES), purchasedPreferences);
         gridView.setAdapter(memeAdapter);
         gridView.refreshDrawableState();
+        category = Category.GAMES;
     }
 
     public void openFavorite() {
         toolbarTitle.setText(getString(R.string.favorite));
-        loadFavorite();
-        memeAdapter = new MemeAdapter(getActivity(), favorite, purchasedPreferences);
+        memeAdapter = new MemeAdapter(getActivity(), loadFavorite(), purchasedPreferences);
         gridView.setAdapter(memeAdapter);
         gridView.refreshDrawableState();
+        category = Category.FAVORITE;
     }
 
-    private void loadClassic() {
-        classic = new ArrayList<>();
-        classic.add(new Meme(1, "Геннадий Горин", R.drawable.classic_1_gorin));
-        classic.add(new Meme(2, "Sample", R.drawable.lil));
-        classic.add(new Meme(3, "Sample", R.drawable.lil));
-        classic.add(new Meme(4, "Sample", R.drawable.lil));
-        classic.add(new Meme(5, "Sample", R.drawable.kit));
-        classic.add(new Meme(6, "Sample", R.drawable.kit));
-        classic.add(new Meme(7, "Sample", R.drawable.kit));
-        classic.add(new Meme(8, "Sample", R.drawable.kit));
-        classic.add(new Meme(9, "Sample", R.drawable.classic_1_gorin));
-        classic.add(new Meme(10, "Sample", R.drawable.lil));
-        classic.add(new Meme(11, "Sample", R.drawable.lil));
-        classic.add(new Meme(12, "Sample", R.drawable.lil));
-        classic.add(new Meme(13, "Sample", R.drawable.kit));
-        classic.add(new Meme(14, "Sample", R.drawable.kit));
-        classic.add(new Meme(15, "Sample", R.drawable.kit));
-        classic.add(new Meme(16, "Sample", R.drawable.kit));
-    }
+    private List<Meme> loadCategory(Category category) {
+        List<Meme> memes = Memes.getMemes(category);
+        List<Meme> sortedMemes = new ArrayList<>();
+        List<Meme> nonPurchasedMemes = new ArrayList<>();
 
-    private void loadGames() {
-        games = new ArrayList<>();
-        games.add(new Meme(101, "Сова", R.drawable.classic_2_sova));
-        games.add(new Meme(102, "Sample", R.drawable.kit));
-        games.add(new Meme(103, "Sample", R.drawable.kit));
-        games.add(new Meme(104, "Sample", R.drawable.kit));
-        games.add(new Meme(105, "Sample", R.drawable.kit));
-        games.add(new Meme(106, "Sample", R.drawable.kit));
-        games.add(new Meme(107, "Sample", R.drawable.lil));
-        games.add(new Meme(108, "Sample", R.drawable.lil));
-        games.add(new Meme(109, "Sample", R.drawable.classic_2_sova));
-        games.add(new Meme(110, "Sample", R.drawable.kit));
-        games.add(new Meme(111, "Sample", R.drawable.kit));
-        games.add(new Meme(112, "Sample", R.drawable.kit));
-        games.add(new Meme(113, "Sample", R.drawable.kit));
-        games.add(new Meme(114, "Sample", R.drawable.kit));
-        games.add(new Meme(115, "Sample", R.drawable.lil));
-        games.add(new Meme(116, "Sample", R.drawable.lil));
-    }
-
-    private void loadFavorite() {
-        if (classic == null) loadClassic();
-        if (games == null) loadGames();
-
-        favorite = new ArrayList<>();
-        for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
-            if (favoritePreferences.getBoolean(id.toString(), false))
-                favorite.add(classic.get(id - 1));
+        for (Meme meme : memes) {
+            if (meme.isPurchased(purchasedPreferences)) sortedMemes.add(meme);
+            else nonPurchasedMemes.add(meme);
         }
-        for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
-            if (favoritePreferences.getBoolean(id.toString(), false))
-                favorite.add(games.get(id - 101));
+
+        Collections.reverse(sortedMemes);
+        Collections.reverse(nonPurchasedMemes);
+        sortedMemes.addAll(nonPurchasedMemes);
+        return sortedMemes;
+    }
+
+    private List<Meme> loadFavorite() {
+        List<Meme> favorite = new ArrayList<>();
+
+        Set<String> favoriteKeys = favoritePreferences.getAll().keySet();
+        List<Integer> favoriteIds = new ArrayList<>();
+
+        for (String id : favoriteKeys) {
+            favoriteIds.add(Integer.parseInt(id));
         }
+
+        Collections.sort(favoriteIds, new Comparator<Integer>() {
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                if (o1 >= 1 && o1 <= 100 && o2 >= 101 && o2 <= 200) return -1;
+                if (o2 >= 1 && o2 <= 100 && o1 >= 101 && o1 <= 200) return 1;
+                if (o1 > o2) return -1;
+                if (o1 < o2) return 1;
+                return 0;
+            }
+        });
+
+        for (Integer id : favoriteIds) {
+            favorite.add(Memes.getMeme(id));
+        }
+
+        return favorite;
     }
 
     /**
@@ -307,7 +288,7 @@ public class MemeFragment extends Fragment {
         dontEnoughCoinsDialog.show();
     }
 
-    public enum State {
+    public enum Category {
         CLASSIC,
         GAMES,
         FAVORITE

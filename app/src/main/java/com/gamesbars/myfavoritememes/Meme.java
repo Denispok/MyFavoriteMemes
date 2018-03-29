@@ -27,11 +27,11 @@ public class Meme {
         return imageResourceId;
     }
 
-    public boolean checkPurchase(SharedPreferences purchasedMemes) {
+    public boolean isPurchased(SharedPreferences purchasedMemes) {
         return purchasedMemes.getBoolean(id.toString(), false);
     }
 
-    public boolean checkFavorite(SharedPreferences favoriteMemes) {
+    public boolean isFavorite(SharedPreferences favoriteMemes) {
         return favoriteMemes.getBoolean(id.toString(), false);
     }
 }

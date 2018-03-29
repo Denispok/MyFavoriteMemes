@@ -86,14 +86,17 @@ public class PhraseFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 isFavorite = !isFavorite;
-
                 SharedPreferences.Editor editor = favoritePreferences.edit();
-                editor.putBoolean(String.valueOf(memeId), isFavorite);
-                editor.apply();
 
-                if (isFavorite)
+                if (isFavorite) {
                     toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_on);
-                else toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+                    editor.putBoolean(String.valueOf(memeId), true);
+                } else {
+                    toolbarFavorite.setImageResource(android.R.drawable.btn_star_big_off);
+                    editor.remove(String.valueOf(memeId));
+                }
+
+                editor.apply();
             }
         });
 
