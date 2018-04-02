@@ -1,5 +1,7 @@
 package com.gamesbars.myfavoritememes;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.FragmentManager;
@@ -12,6 +14,9 @@ import android.view.MenuItem;
 
 import com.gamesbars.myfavoritememes.Fragments.MemeFragment;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -20,12 +25,19 @@ public class MainActivity extends AppCompatActivity
     public final static String PREFERENCES_FAVORITE = "favorite";
     public final static String PREFERENCES_PURCHASE = "purchase";
 
+    public final static Integer MEME_PRICE = 100;  //   price of one meme
+    private final static Integer START_COINS = 1000;  //  start count of coins
+    private final static List<Integer> CLASSIC_OPEN = Arrays.asList(1, 2, 3, 4); // initially purchased classic memes
+    private final static List<Integer> GAMES_OPEN = Arrays.asList(101, 102, 103, 104);   // initially purchased games memes
+
     private Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        initializePreferences();
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.content_main, new MemeFragment())
@@ -87,6 +99,33 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void initializePreferences() {
+        SharedPreferences purchasedPreferences = getSharedPreferences(PREFERENCES_PURCHASE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = purchasedPreferences.edit();
+        for (Meme meme : Memes.getMemes(MemeFragment.Category.CLASSIC)) {
+            Integer memeId = meme.getId();
+            if (!purchasedPreferences.contains(memeId.toString())) {
+                if (CLASSIC_OPEN.contains(memeId)) editor.putBoolean(memeId.toString(), true);
+                else editor.putBoolean(memeId.toString(), false);
+            }
+        }
+        for (Meme meme : Memes.getMemes(MemeFragment.Category.GAMES)) {
+            Integer memeId = meme.getId();
+            if (!purchasedPreferences.contains(memeId.toString())) {
+                if (GAMES_OPEN.contains(memeId)) editor.putBoolean(memeId.toString(), true);
+                else editor.putBoolean(memeId.toString(), false);
+            }
+        }
+        editor.apply();
+
+        SharedPreferences appPreferences = getSharedPreferences(PREFERENCES_APP, Context.MODE_PRIVATE);
+        if (!appPreferences.contains(PREFERENCES_APP_COINS)) {
+            editor = appPreferences.edit();
+            editor.putInt(PREFERENCES_APP_COINS, START_COINS);
+            editor.apply();
+        }
     }
 }
 

@@ -26,19 +26,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
+import static com.gamesbars.myfavoritememes.MainActivity.MEME_PRICE;
 import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_APP;
 import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_APP_COINS;
 import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_FAVORITE;
 import static com.gamesbars.myfavoritememes.MainActivity.PREFERENCES_PURCHASE;
 
 public class MemeFragment extends Fragment {
-
-    private final static Integer START_COINS = 1000;  //  start count of coins
-    private final static Integer MEME_PRICE = 100;  //   price of one meme
-    private final static Integer CLASSIC_COUNT = 16;
-    private final static Integer CLASSIC_OPEN_COUNT = 2; // initially purchased classic memes
-    private final static Integer GAMES_COUNT = 16;
-    private final static Integer GAMES_OPEN_COUNT = 2;   // initially purchased games memes
 
     private Category category;
 
@@ -65,7 +59,10 @@ public class MemeFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         category = Category.CLASSIC;
-        initializePreferences();
+
+        purchasedPreferences = getActivity().getSharedPreferences(PREFERENCES_PURCHASE, Context.MODE_PRIVATE);
+        favoritePreferences = getActivity().getSharedPreferences(PREFERENCES_FAVORITE, Context.MODE_PRIVATE);
+        appPreferences = getActivity().getSharedPreferences(PREFERENCES_APP, Context.MODE_PRIVATE);
     }
 
     @Override
@@ -87,17 +84,7 @@ public class MemeFragment extends Fragment {
 
         gridView = (GridView) rootView.findViewById(R.id.grid_view);
 
-        switch (category) {
-            case CLASSIC:
-                openClassic();
-                break;
-            case GAMES:
-                openGames();
-                break;
-            case FAVORITE:
-                openFavorite();
-                break;
-        }
+        openCurrentCategory();
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -128,30 +115,17 @@ public class MemeFragment extends Fragment {
         return rootView;
     }
 
-    private void initializePreferences() {
-        purchasedPreferences = getActivity().getSharedPreferences(PREFERENCES_PURCHASE, Context.MODE_PRIVATE);
-        editor = purchasedPreferences.edit();
-        for (Integer id = 1; id <= CLASSIC_COUNT; id++) {
-            if (!purchasedPreferences.contains(id.toString())) {
-                if (id > CLASSIC_OPEN_COUNT) editor.putBoolean(id.toString(), false);
-                else editor.putBoolean(id.toString(), true);
-            }
-        }
-        for (Integer id = 101; id <= GAMES_COUNT + 100; id++) {
-            if (!purchasedPreferences.contains(id.toString())) {
-                if (id > GAMES_OPEN_COUNT + 100) editor.putBoolean(id.toString(), false);
-                else editor.putBoolean(id.toString(), true);
-            }
-        }
-        editor.apply();
-
-        favoritePreferences = getActivity().getSharedPreferences(PREFERENCES_FAVORITE, Context.MODE_PRIVATE);
-
-        appPreferences = getActivity().getSharedPreferences(PREFERENCES_APP, Context.MODE_PRIVATE);
-        if (!appPreferences.contains(PREFERENCES_APP_COINS)) {
-            editor = appPreferences.edit();
-            editor.putInt(PREFERENCES_APP_COINS, START_COINS);
-            editor.apply();
+    private void openCurrentCategory() {
+        switch (category) {
+            case CLASSIC:
+                openClassic();
+                break;
+            case GAMES:
+                openGames();
+                break;
+            case FAVORITE:
+                openFavorite();
+                break;
         }
     }
 
@@ -253,7 +227,7 @@ public class MemeFragment extends Fragment {
                     editor.apply();
                     refreshCoins(-MEME_PRICE);
 
-                    gridView.invalidateViews();
+                    openCurrentCategory();
                 }
             });
 
