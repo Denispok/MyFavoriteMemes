@@ -58,7 +58,7 @@ public class MemeFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        category = Category.CLASSIC;
+        category = Category.MODERN;
 
         purchasedPreferences = getActivity().getSharedPreferences(PREFERENCES_PURCHASE, Context.MODE_PRIVATE);
         favoritePreferences = getActivity().getSharedPreferences(PREFERENCES_FAVORITE, Context.MODE_PRIVATE);
@@ -117,6 +117,9 @@ public class MemeFragment extends Fragment {
 
     private void openCurrentCategory() {
         switch (category) {
+            case MODERN:
+                openModern();
+                break;
             case CLASSIC:
                 openClassic();
                 break;
@@ -127,6 +130,14 @@ public class MemeFragment extends Fragment {
                 openFavorite();
                 break;
         }
+    }
+
+    public void openModern() {
+        toolbarTitle.setText(getString(R.string.modern));
+        memeAdapter = new MemeAdapter(getActivity(), loadCategory(Category.MODERN), purchasedPreferences);
+        gridView.setAdapter(memeAdapter);
+        gridView.refreshDrawableState();
+        category = Category.MODERN;
     }
 
     public void openClassic() {
@@ -182,8 +193,8 @@ public class MemeFragment extends Fragment {
         Collections.sort(favoriteIds, new Comparator<Integer>() {
             @Override
             public int compare(Integer o1, Integer o2) {
-                if (o1 >= 1 && o1 <= 100 && o2 >= 101 && o2 <= 200) return -1;
-                if (o2 >= 1 && o2 <= 100 && o1 >= 101 && o1 <= 200) return 1;
+                if (o1 / 100 < o2 / 100) return -1;
+                if (o1 / 100 > o2 / 100) return 1;
                 if (o1 > o2) return -1;
                 if (o1 < o2) return 1;
                 return 0;
@@ -263,6 +274,7 @@ public class MemeFragment extends Fragment {
     }
 
     public enum Category {
+        MODERN,
         CLASSIC,
         GAMES,
         FAVORITE

@@ -7,7 +7,7 @@ import java.util.List;
 
 public final class Memes {
 
-    private static final Meme[] classic = new Meme[]{
+    private static final Meme[] modern = new Meme[]{
             new Meme(1, "Геннадий Горин", R.drawable.classic_1_gorin),
             new Meme(2, "Sample", R.drawable.lil),
             new Meme(3, "Sample", R.drawable.lil),
@@ -25,26 +25,33 @@ public final class Memes {
             new Meme(15, "Sample", R.drawable.kit),
             new Meme(16, "Sample", R.drawable.kit)};
 
+    private static final Meme[] classic = new Meme[]{
+            new Meme(101, "Гамаз", R.drawable.classic_1_gamaz),
+            new Meme(102, "Повар", R.drawable.classic_2_povar)};
+
     private static final Meme[] games = new Meme[]{
-            new Meme(101, "Сова", R.drawable.classic_2_sova),
-            new Meme(102, "Sample", R.drawable.kit),
-            new Meme(103, "Sample", R.drawable.kit),
-            new Meme(104, "Sample", R.drawable.kit),
-            new Meme(105, "Sample", R.drawable.kit),
-            new Meme(106, "Sample", R.drawable.kit),
-            new Meme(107, "Sample", R.drawable.lil),
-            new Meme(108, "Sample", R.drawable.lil),
-            new Meme(109, "Sample", R.drawable.classic_2_sova),
-            new Meme(110, "Sample", R.drawable.kit),
-            new Meme(111, "Sample", R.drawable.kit),
-            new Meme(112, "Sample", R.drawable.kit),
-            new Meme(113, "Sample", R.drawable.kit),
-            new Meme(114, "Sample", R.drawable.kit),
-            new Meme(115, "Sample", R.drawable.lil),
-            new Meme(116, "Sample", R.drawable.lil)};
+            new Meme(201, "Сова", R.drawable.classic_2_sova),
+            new Meme(202, "Sample", R.drawable.kit),
+            new Meme(203, "Sample", R.drawable.kit),
+            new Meme(204, "Sample", R.drawable.kit),
+            new Meme(205, "Sample", R.drawable.kit),
+            new Meme(206, "Sample", R.drawable.kit),
+            new Meme(207, "Sample", R.drawable.lil),
+            new Meme(208, "Sample", R.drawable.lil),
+            new Meme(209, "Sample", R.drawable.classic_2_sova),
+            new Meme(210, "Sample", R.drawable.kit),
+            new Meme(211, "Sample", R.drawable.kit),
+            new Meme(212, "Sample", R.drawable.kit),
+            new Meme(213, "Sample", R.drawable.kit),
+            new Meme(214, "Sample", R.drawable.kit),
+            new Meme(215, "Sample", R.drawable.lil),
+            new Meme(216, "Sample", R.drawable.lil)};
 
     public static List<Meme> getMemes(MemeFragment.Category category) {
         switch (category) {
+            case MODERN:
+                return Arrays.asList(modern);
+
             case CLASSIC:
                 return Arrays.asList(classic);
 
@@ -57,7 +64,8 @@ public final class Memes {
     }
 
     public static Meme getMeme(int memeId) {
-        if (memeId <= 100) return classic[memeId - 1];
-        else return games[memeId - 101];
+        if (memeId <= 100) return modern[memeId - 1];
+        if (memeId <= 200) return classic[memeId - 101];
+        return games[memeId - 201];
     }
 }

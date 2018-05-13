@@ -27,8 +27,9 @@ public class MainActivity extends AppCompatActivity
 
     public final static Integer MEME_PRICE = 100;  //   price of one meme
     private final static Integer START_COINS = 1000;  //  start count of coins
-    private final static List<Integer> CLASSIC_OPEN = Arrays.asList(1, 2, 3, 4); // initially purchased classic memes
-    private final static List<Integer> GAMES_OPEN = Arrays.asList(101, 102, 103, 104);   // initially purchased games memes
+    private final static List<Integer> MODERN_OPEN = Arrays.asList(1); // initially purchased modern memes
+    private final static List<Integer> CLASSIC_OPEN = Arrays.asList(101, 102, 103, 104); // initially purchased classic memes
+    private final static List<Integer> GAMES_OPEN = Arrays.asList(201, 202, 203, 204);   // initially purchased games memes
 
     private Toolbar toolbar;
 
@@ -92,6 +93,7 @@ public class MainActivity extends AppCompatActivity
                     .commit();
         }
 
+        if (id == R.id.nav_modern) memeFragment.openModern();
         if (id == R.id.nav_classic) memeFragment.openClassic();
         else if (id == R.id.nav_games) memeFragment.openGames();
         else if (id == R.id.nav_favorite) memeFragment.openFavorite();
@@ -104,6 +106,13 @@ public class MainActivity extends AppCompatActivity
     private void initializePreferences() {
         SharedPreferences purchasedPreferences = getSharedPreferences(PREFERENCES_PURCHASE, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = purchasedPreferences.edit();
+        for (Meme meme : Memes.getMemes(MemeFragment.Category.MODERN)) {
+            Integer memeId = meme.getId();
+            if (!purchasedPreferences.contains(memeId.toString())) {
+                if (MODERN_OPEN.contains(memeId)) editor.putBoolean(memeId.toString(), true);
+                else editor.putBoolean(memeId.toString(), false);
+            }
+        }
         for (Meme meme : Memes.getMemes(MemeFragment.Category.CLASSIC)) {
             Integer memeId = meme.getId();
             if (!purchasedPreferences.contains(memeId.toString())) {
